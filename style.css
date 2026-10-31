@@ -1,0 +1,184 @@
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f7f7f8;
+  color: #171717;
+}
+
+.topbar {
+  height: 65px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.logo {
+  font-size: 23px;
+  font-weight: 900;
+  letter-spacing: -1px;
+}
+
+.logo span {
+  color: #777;
+}
+
+.search {
+  border: none;
+  background: #f2f2f2;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 25px;
+  cursor: pointer;
+}
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 35px;
+  height: 52px;
+  align-items: center;
+  background: white;
+  position: sticky;
+  top: 65px;
+  z-index: 9;
+}
+
+.tabs button {
+  border: none;
+  background: none;
+  color: #999;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.tabs button.active {
+  color: #111;
+  font-weight: bold;
+  border-bottom: 2px solid #111;
+  height: 52px;
+}
+
+#feed {
+  max-width: 600px;
+  margin: auto;
+  padding-bottom: 90px;
+}
+
+.empty {
+  text-align: center;
+  padding: 100px 20px;
+}
+
+.empty-icon {
+  font-size: 55px;
+  color: #bbb;
+}
+
+.empty h2 {
+  margin: 15px 0;
+}
+
+.empty p {
+  color: #888;
+  margin-bottom: 20px;
+}
+
+.empty button {
+  background: #111;
+  color: white;
+  border: none;
+  padding: 13px 24px;
+  border-radius: 25px;
+  cursor: pointer;
+}
+
+.video-card {
+  position: relative;
+  background: #eee;
+  margin: 15px auto;
+  max-width: 430px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.video-card video {
+  width: 100%;
+  display: block;
+  max-height: 75vh;
+  object-fit: contain;
+  background: #ddd;
+}
+
+.video-info {
+  padding: 13px;
+  background: white;
+}
+
+.video-actions {
+  display: flex;
+  justify-content: space-around;
+  padding: 12px;
+  background: white;
+}
+
+.video-actions button {
+  border: none;
+  background: none;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 68px;
+  background: white;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 20;
+}
+
+.bottom-nav button {
+  border: none;
+  background: none;
+  font-size: 23px;
+  color: #333;
+  cursor: pointer;
+}
+
+.bottom-nav small {
+  display: block;
+  font-size: 10px;
+}
+
+.bottom-nav .upload {
+  background: #111;
+  color: white;
+  border-radius: 12px;
+  width: 45px;
+  height: 40px;
+  font-size: 27px;
+}
+
+@media (min-width: 700px) {
+  #feed {
+    margin-top: 20px;
+  }
+}
