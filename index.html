@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#101014">
   <title>ERENSARYA - Sosyal Video</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -13,7 +13,13 @@
 
 <header class="header">
   <a class="logo" href="#">EREN<span>SARYA</span></a>
-  <button id="searchBtn" class="icon-btn">⌕</button>
+  <div class="header-actions">
+    <button id="searchBtn" class="icon-btn">⌕</button>
+    <button id="messagesBtn" class="icon-btn message-open">
+      ✉
+      <span id="messageBadge" class="message-badge hidden">0</span>
+    </button>
+  </div>
 </header>
 
 <div class="auth-bar" id="authBar">
@@ -33,6 +39,58 @@
 
 <section id="profilePage" class="profile-page hidden"></section>
 
+<!-- MESAJLAŞMA SAYFASI -->
+<section id="messagesPage" class="messages-page hidden">
+  <div class="messages-topbar">
+    <button id="backMessages" class="back-btn">←</button>
+    <div>
+      <h2>Mesajlar</h2>
+      <p>ERENSARYA özel sohbet</p>
+    </div>
+  </div>
+
+  <div class="messages-layout">
+    <aside class="messages-sidebar">
+      <div class="contact-search">
+        <span>⌕</span>
+        <input id="contactSearch" placeholder="Kullanıcı ara...">
+      </div>
+      <div id="contactList" class="contact-list">
+        <p class="chat-empty">Kullanıcılar yükleniyor...</p>
+      </div>
+    </aside>
+
+    <div class="chat-panel">
+      <div id="chatHeader" class="chat-header">
+        <div class="chat-welcome-icon">✉</div>
+        <h3>ERENSARYA Mesajlaşma</h3>
+        <p>Sohbet etmek için bir kullanıcı seç.</p>
+      </div>
+
+      <div id="messageList" class="message-list">
+        <div class="chat-start">
+          <div class="chat-start-icon">💬</div>
+          <h3>Sohbete başla</h3>
+          <p>Bir kullanıcı seçerek mesajlaşmaya başlayabilirsin.</p>
+        </div>
+      </div>
+
+      <form id="messageForm" class="message-form">
+        <input
+          id="messageInput"
+          maxlength="2000"
+          placeholder="Önce bir sohbet seç..."
+          autocomplete="off"
+          disabled
+          required
+        >
+        <button type="submit" disabled id="sendMessageBtn">➤</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- GİRİŞ / KAYIT -->
 <div id="authModal" class="modal hidden">
   <div class="modal-content">
     <button class="close" onclick="closeModal()">✕</button>
@@ -47,6 +105,7 @@
   </div>
 </div>
 
+<!-- YORUMLAR -->
 <div id="commentModal" class="modal hidden">
   <div class="modal-content">
     <button class="close" onclick="closeComments()">✕</button>
@@ -59,7 +118,8 @@
   </div>
 </div>
 
-<input type="file" id="videoInput" accept="video/mp4,video/webm,video/quicktime" hidden>
+<input type="file" id="videoInput"
+  accept="video/mp4,video/webm,video/quicktime" hidden>
 
 <nav class="bottom-nav">
   <button onclick="loadFeed('forYou')">⌂<small>Ana Sayfa</small></button>
@@ -70,5 +130,7 @@
 </nav>
 
 <script src="app.js"></script>
+<script src="messages.js"></script>
+
 </body>
 </html>
