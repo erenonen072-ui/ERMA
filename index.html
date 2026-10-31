@@ -1,0 +1,47 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>ERENSARYA - Video Paylaşım</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="logo">EREN<span>SARYA</span></div>
+  <button class="search">⌕</button>
+</header>
+
+<nav class="tabs">
+  <button onclick="setTab('Takip',this)">Takip</button>
+  <button class="active" onclick="setTab('Sana Özel',this)">Sana Özel</button>
+  <button onclick="setTab('Keşfet',this)">Keşfet</button>
+</nav>
+
+<main id="feed">
+  <div class="empty">
+    <div class="empty-icon">▶</div>
+    <h2>Henüz video yok</h2>
+    <p>İlk videonu paylaş ve ER ENSARYA'yı başlat!</p>
+    <button onclick="document.getElementById('videoInput').click()">
+      İlk Videonu Yükle
+    </button>
+  </div>
+</main>
+
+<input type="file" id="videoInput" accept="video/*" hidden>
+
+<nav class="bottom-nav">
+  <button onclick="window.scrollTo(0,0)">⌂<small>Ana Sayfa</small></button>
+  <button onclick="setTab('Takip')">♧<small>Takip</small></button>
+  <button class="upload" onclick="document.getElementById('videoInput').click()">＋</button>
+  <button onclick="setTab('Keşfet')">⌕<small>Keşfet</small></button>
+  <button onclick="showProfile()">♙<small>Profil</small></button>
+</nav>
+
+<script src="app.js"></script>
+</body>
+</html>
