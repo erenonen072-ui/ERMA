@@ -4,7 +4,7 @@
 // ===================================
 
 const SUPABASE_URL = "https://zhxysowjrvzflrduqbaj.supabase.co";
-const SUPABASE_KEY = "sb_publishable_-vUDT5LRwj89sLihzu7MyQ_jpGzbDQM";
+const SUPABASE_KEY = "BURAYA_PUBLISHABLE_KEY";
 
 const db = window.supabase.createClient(
   SUPABASE_URL,
@@ -17,11 +17,51 @@ let currentTab = "forYou";
 let activeCommentVideo = null;
 
 // ===================================
+// HELPERS
+// ===================================
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  })[char]);
+}
+
+function getElement(id) {
+  return document.getElementById(id);
+}
+
+function showError(message) {
+  alert(message || "Bir hata oluştu.");
+}
+
+// ===================================
 // AUTHENTICATION
 // ===================================
 
 async function init() {
-  const { data } = await db.auth.getSession();
+  if (!window.supabase) {
+    console.error("Supabase kütüphanesi yüklenmedi.");
+    return;
+  }
+
+  if (
+    SUPABASE_KEY === "BURAYA_PUBLISHABLE_KEY" ||
+    !SUPABASE_KEY.startsWith("sb_publishable_")
+  ) {
+    console.error("Supabase Publishable Key eksik.");
+    return;
+  }
+
+  const { data, error } = await db.auth.getSession();
+
+  if (error) {
+    console.error(error);
+    return;
+  }
 
   currentUser = data.session?.user || null;
 
@@ -51,7 +91,8 @@ async function loadMyProfile() {
 }
 
 function updateAuthBar() {
-  const bar = document.getElementById("authBar");
+  const bar = getElement("authBar");
+  if (!bar) return;
 
   if (currentUser) {
     bar.innerHTML = `
@@ -63,107 +104,103 @@ function updateAuthBar() {
   } else {
     bar.innerHTML = `
       <button onclick="showAuth('login')">Giriş Yap</button>
-      <button class="dark-btn" onclick="showAuth('signup')">Kayıt Ol</button>
+      <button class="dark-btn" onclick="showAuth('signup')">
+        Kayıt Ol
+      </button>
     `;
   }
 }
 
 function showAuth(type) {
-  document.getElementById("authModal").classList.remove("hidden");
+  const modal = getElement("authModal");
+  if (!modal) return;
+
+  modal.classList.remove("hidden");
 
   const signup = type === "signup";
 
-  document.getElementById("authTitle").textContent =
+  getElement("authTitle").textContent =
     signup ? "Hesap Oluştur" : "Giriş Yap";
 
-  document.getElementById("username").classList.toggle(
-    "hidden", !signup
-  );
+  getElement("username")?.classList.toggle("hidden", !signup);
 
-  document.getElementById("authSubmit").textContent =
+  getElement("authSubmit").textContent =
     signup ? "Kayıt Ol" : "Giriş Yap";
 
-  document.getElementById("authForm").dataset.type = type;
-  document.getElementById("authMessage").textContent = "";
+  getElement("authForm").dataset.type = type;
+  getElement("authMessage").textContent = "";
 }
 
 function closeModal() {
-  document.getElementById("authModal").classList.add("hidden");
+  getElement("authModal")?.classList.add("hidden");
 }
 
-document.getElementById("authForm").addEventListener(
-  "submit", async function(e) {
-    e.preventDefault();
+getElement("authForm")?.addEventListener("submit", async function(e) {
+  e.preventDefault();
 
-    const type = this.dataset.type;
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
-    const username = document.getElementById("username").value.trim();
+  const type = this.dataset.type;
+  const email = getElement("email").value.trim();
+  const password = getElement("password").value;
+  const username = getElement("username").value.trim();
+  const message = getElement("authMessage");
+  const submit = getElement("authSubmit");
 
-    const message = document.getElementById("authMessage");
-    const submit = document.getElementById("authSubmit");
+  submit.disabled = true;
+  message.textContent = "İşlem yapılıyor...";
 
-    submit.disabled = true;
-    message.textContent = "İşlem yapılıyor...";
+  try {
+    if (type === "signup") {
+      if (!/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
+        throw new Error(
+          "Kullanıcı adı 3-30 karakter olmalı."
+        );
+      }
 
-    try {
-      if (type === "signup") {
-        if (!/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
-          throw new Error(
-            "Kullanıcı adı 3-30 karakter olmalı; harf, rakam ve _ kullan."
-          );
+      const { data, error } = await db.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { username }
         }
+      });
 
-        const { data, error } = await db.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { username }
-          }
-        });
+      if (error) throw error;
 
-        if (error) throw error;
-
-        if (data.session) {
-          currentUser = data.user;
-          await loadMyProfile();
-          closeModal();
-          updateAuthBar();
-          await loadFeed("forYou");
-        } else {
-          message.textContent =
-            "Kayıt başarılı. E-posta doğrulamasını tamamla.";
-        }
-
-      } else {
-        const { data, error } = await db.auth.signInWithPassword({
-          email,
-          password
-        });
-
-        if (error) throw error;
-
+      if (data.session) {
         currentUser = data.user;
         await loadMyProfile();
         closeModal();
         updateAuthBar();
         await loadFeed("forYou");
+      } else {
+        message.textContent =
+          "Kayıt başarılı. E-posta doğrulamasını tamamla.";
       }
-    } catch(error) {
-      message.textContent = error.message;
-    } finally {
-      submit.disabled = false;
+    } else {
+      const { data, error } = await db.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) throw error;
+
+      currentUser = data.user;
+      await loadMyProfile();
+      closeModal();
+      updateAuthBar();
+      await loadFeed("forYou");
     }
+  } catch (error) {
+    message.textContent = error.message;
+  } finally {
+    submit.disabled = false;
   }
-);
+});
 
 async function logout() {
   const { error } = await db.auth.signOut();
 
-  if (error) {
-    alert(error.message);
-    return;
-  }
+  if (error) return showError(error.message);
 
   currentUser = null;
   currentProfile = null;
@@ -190,25 +227,16 @@ async function loadFeed(tab, element) {
 
   if (element) {
     document.querySelectorAll(".tabs button")
-      .forEach(b => b.classList.remove("active"));
+      .forEach(button => button.classList.remove("active"));
 
     element.classList.add("active");
-  } else {
-    const buttons = document.querySelectorAll(".tabs button");
-    const index = {
-      following: 0,
-      forYou: 1,
-      discover: 2
-    }[tab];
-
-    buttons.forEach(b => b.classList.remove("active"));
-    buttons[index]?.classList.add("active");
   }
 
-  document.getElementById("profilePage")
-    .classList.add("hidden");
+  getElement("profilePage")?.classList.add("hidden");
 
-  const feed = document.getElementById("feed");
+  const feed = getElement("feed");
+  if (!feed) return;
+
   feed.classList.remove("hidden");
   feed.innerHTML = '<div class="loading">Videolar yükleniyor...</div>';
 
@@ -216,7 +244,7 @@ async function loadFeed(tab, element) {
     .from("videos")
     .select(`
       *,
-      profiles:user_id (
+      profiles!videos_user_id_fkey (
         username,
         avatar_url
       )
@@ -226,7 +254,8 @@ async function loadFeed(tab, element) {
 
   if (tab === "following") {
     if (!currentUser) {
-      feed.innerHTML = '<div class="empty">Takip akışını görmek için giriş yap.</div>';
+      feed.innerHTML =
+        '<div class="empty">Takip akışını görmek için giriş yap.</div>';
       return;
     }
 
@@ -240,10 +269,11 @@ async function loadFeed(tab, element) {
       return;
     }
 
-    const ids = follows.map(f => f.following_id);
+    const ids = follows.map(item => item.following_id);
 
     if (!ids.length) {
-      feed.innerHTML = '<div class="empty">Henüz kimseyi takip etmiyorsun.</div>';
+      feed.innerHTML =
+        '<div class="empty">Henüz kimseyi takip etmiyorsun.</div>';
       return;
     }
 
@@ -257,8 +287,9 @@ async function loadFeed(tab, element) {
     return;
   }
 
-  if (!videos.length) {
-    feed.innerHTML = '<div class="empty">Henüz video paylaşılmamış.</div>';
+  if (!videos?.length) {
+    feed.innerHTML =
+      '<div class="empty">Henüz video paylaşılmamış.</div>';
     return;
   }
 
@@ -272,7 +303,7 @@ async function loadFeed(tab, element) {
 }
 
 // ===================================
-// RENDER VIDEO
+// VIDEO CARD
 // ===================================
 
 async function renderVideo(video, feed) {
@@ -318,9 +349,8 @@ async function renderVideo(video, feed) {
       followBtn.classList.add("following");
     }
 
-    followBtn.onclick = async () => {
-      await toggleFollow(video.user_id, followBtn);
-    };
+    followBtn.onclick = () =>
+      toggleFollow(video.user_id, followBtn);
 
     userRow.append(followBtn);
   }
@@ -334,8 +364,9 @@ async function renderVideo(video, feed) {
   const actions = document.createElement("div");
   actions.className = "video-actions";
 
+  // LIKE
+
   const likeBtn = document.createElement("button");
-  likeBtn.textContent = "♡ Beğen";
 
   const { count: likeCount } = await db
     .from("likes")
@@ -355,11 +386,15 @@ async function renderVideo(video, feed) {
     liked = !!existingLike;
   }
 
-  likeBtn.textContent =
-    `${liked ? "♥" : "♡"} ${likeCount || 0}`;
+  let count = likeCount || 0;
+
+  likeBtn.textContent = `${liked ? "♥" : "♡"} ${count}`;
 
   likeBtn.onclick = async () => {
-    if (!currentUser) return alert("Önce giriş yapmalısın.");
+    if (!currentUser) {
+      showAuth("login");
+      return;
+    }
 
     const { error } = liked
       ? await db.from("likes").delete()
@@ -370,16 +405,21 @@ async function renderVideo(video, feed) {
           user_id: currentUser.id
         });
 
-    if (error) return alert(error.message);
+    if (error) return showError(error.message);
 
     liked = !liked;
-    const nextCount = (likeCount || 0) + (liked ? 1 : -1);
-    likeBtn.textContent = `${liked ? "♥" : "♡"} ${nextCount}`;
+    count += liked ? 1 : -1;
+
+    likeBtn.textContent = `${liked ? "♥" : "♡"} ${count}`;
   };
+
+  // COMMENTS
 
   const commentBtn = document.createElement("button");
   commentBtn.textContent = "💬 Yorum";
   commentBtn.onclick = () => openComments(video.id);
+
+  // SHARE
 
   const shareBtn = document.createElement("button");
   shareBtn.textContent = "↗ Paylaş";
@@ -398,9 +438,9 @@ async function renderVideo(video, feed) {
         await navigator.clipboard.writeText(shareData.url);
         alert("Video bağlantısı kopyalandı.");
       }
-    } catch(error) {
+    } catch (error) {
       if (error.name !== "AbortError") {
-        alert("Paylaşım başarısız.");
+        showError("Paylaşım başarısız.");
       }
     }
   };
@@ -444,82 +484,90 @@ async function uploadVideo() {
     return;
   }
 
-  document.getElementById("videoInput").click();
+  getElement("videoInput")?.click();
 }
 
-document.getElementById("videoInput").addEventListener(
-  "change", async function() {
-    const file = this.files[0];
-    if (!file) return;
+getElement("videoInput")?.addEventListener("change", async function() {
+  const file = this.files[0];
+  if (!file) return;
 
-    if (!file.type.startsWith("video/")) {
-      alert("Lütfen video seç.");
-      return;
-    }
-
-    if (file.size > 100 * 1024 * 1024) {
-      alert("Video en fazla 100 MB olabilir.");
-      return;
-    }
-
-    const description = prompt("Videon için açıklama yaz:") || "";
-
-    const extension = file.name.split(".").pop().toLowerCase();
-    const allowed = ["mp4", "webm", "mov"];
-
-    if (!allowed.includes(extension)) {
-      alert("Desteklenmeyen video formatı.");
-      this.value = "";
-      return;
-    }
-
-    const path =
-      `${currentUser.id}/${crypto.randomUUID()}.${extension}`;
-
-    try {
-      const { error: uploadError } = await db.storage
-        .from("videos")
-        .upload(path, file, {
-          contentType: file.type,
-          upsert: false
-        });
-
-      if (uploadError) throw uploadError;
-
-      const { data: publicData } = db.storage
-        .from("videos")
-        .getPublicUrl(path);
-
-      const { error: insertError } = await db
-        .from("videos")
-        .insert({
-          user_id: currentUser.id,
-          video_url: publicData.publicUrl,
-          description: description.slice(0, 500)
-        });
-
-      if (insertError) {
-        await db.storage.from("videos").remove([path]);
-        throw insertError;
-      }
-
-      alert("Videon başarıyla paylaşıldı!");
-      await loadFeed("forYou");
-
-    } catch(error) {
-      alert("Video yüklenemedi: " + error.message);
-    } finally {
-      this.value = "";
-    }
+  if (!currentUser) {
+    showAuth("login");
+    this.value = "";
+    return;
   }
-);
+
+  if (!file.type.startsWith("video/")) {
+    showError("Lütfen video seç.");
+    this.value = "";
+    return;
+  }
+
+  if (file.size > 100 * 1024 * 1024) {
+    showError("Video en fazla 100 MB olabilir.");
+    this.value = "";
+    return;
+  }
+
+  const extension = file.name.split(".").pop().toLowerCase();
+  const allowed = ["mp4", "webm", "mov"];
+
+  if (!allowed.includes(extension)) {
+    showError("Desteklenmeyen video formatı.");
+    this.value = "";
+    return;
+  }
+
+  const description = prompt("Videon için açıklama yaz:") || "";
+
+  const path =
+    `${currentUser.id}/${crypto.randomUUID()}.${extension}`;
+
+  try {
+    const { error: uploadError } = await db.storage
+      .from("videos")
+      .upload(path, file, {
+        contentType: file.type,
+        upsert: false
+      });
+
+    if (uploadError) throw uploadError;
+
+    const { data: publicData } = db.storage
+      .from("videos")
+      .getPublicUrl(path);
+
+    const { error: insertError } = await db
+      .from("videos")
+      .insert({
+        user_id: currentUser.id,
+        video_url: publicData.publicUrl,
+        description: description.slice(0, 500)
+      });
+
+    if (insertError) {
+      await db.storage.from("videos").remove([path]);
+      throw insertError;
+    }
+
+    alert("Videon başarıyla paylaşıldı!");
+    await loadFeed("forYou");
+  } catch (error) {
+    showError("Video yüklenemedi: " + error.message);
+  } finally {
+    this.value = "";
+  }
+});
 
 // ===================================
 // FOLLOW SYSTEM
 // ===================================
 
 async function toggleFollow(userId, button) {
-  if (!currentUser) return showAuth("login");
+  if (!currentUser) {
+    showAuth("login");
+    return;
+  }
 
   if (userId === currentUser.id) return;
 
@@ -530,7 +578,7 @@ async function toggleFollow(userId, button) {
     .eq("following_id", userId)
     .maybeSingle();
 
-  if (error) return alert(error.message);
+  if (error) return showError(error.message);
 
   if (existing) {
     const { error: removeError } = await db
@@ -538,11 +586,10 @@ async function toggleFollow(userId, button) {
       .delete()
       .eq("id", existing.id);
 
-    if (removeError) return alert(removeError.message);
+    if (removeError) return showError(removeError.message);
 
     button.textContent = "Takip Et";
     button.classList.remove("following");
-
   } else {
     const { error: addError } = await db
       .from("follows")
@@ -551,7 +598,7 @@ async function toggleFollow(userId, button) {
         following_id: userId
       });
 
-    if (addError) return alert(addError.message);
+    if (addError) return showError(addError.message);
 
     button.textContent = "Takip Ediliyor";
     button.classList.add("following");
@@ -565,14 +612,14 @@ async function toggleFollow(userId, button) {
 async function openComments(videoId) {
   activeCommentVideo = videoId;
 
-  document.getElementById("commentModal")
-    .classList.remove("hidden");
+  getElement("commentModal")?.classList.remove("hidden");
 
   await loadComments();
 }
 
 async function loadComments() {
-  const list = document.getElementById("commentList");
+  const list = getElement("commentList");
+  if (!list) return;
 
   list.textContent = "Yorumlar yükleniyor...";
 
@@ -580,7 +627,7 @@ async function loadComments() {
     .from("comments")
     .select(`
       *,
-      profiles:user_id(username)
+      profiles!comments_user_id_fkey(username)
     `)
     .eq("video_id", activeCommentVideo)
     .order("created_at", { ascending: false });
@@ -613,38 +660,36 @@ async function loadComments() {
   });
 }
 
-document.getElementById("commentForm")
-  .addEventListener("submit", async e => {
-    e.preventDefault();
+getElement("commentForm")?.addEventListener("submit", async e => {
+  e.preventDefault();
 
-    if (!currentUser) {
-      return showAuth("login");
-    }
+  if (!currentUser) {
+    showAuth("login");
+    return;
+  }
 
-    const input = document.getElementById("commentInput");
-    const content = input.value.trim();
+  const input = getElement("commentInput");
+  const content = input.value.trim();
 
-    if (!content || !activeCommentVideo) return;
+  if (!content || !activeCommentVideo) return;
 
-    const { error } = await db.from("comments").insert({
-      video_id: activeCommentVideo,
-      user_id: currentUser.id,
-      content
-    });
-
-    if (error) {
-      alert(error.message);
-      return;
-    }
-
-    input.value = "";
-    await loadComments();
+  const { error } = await db.from("comments").insert({
+    video_id: activeCommentVideo,
+    user_id: currentUser.id,
+    content: content.slice(0, 500)
   });
 
-function closeComments() {
-  document.getElementById("commentModal")
-    .classList.add("hidden");
+  if (error) {
+    showError(error.message);
+    return;
+  }
 
+  input.value = "";
+  await loadComments();
+});
+
+function closeComments() {
+  getElement("commentModal")?.classList.add("hidden");
   activeCommentVideo = null;
 }
 
@@ -653,18 +698,22 @@ function closeComments() {
 // ===================================
 
 async function showMyProfile() {
-  if (!currentUser) return showAuth("login");
+  if (!currentUser) {
+    showAuth("login");
+    return;
+  }
 
   await showProfile(currentUser.id);
 }
 
 async function showProfile(userId) {
-  const page = document.getElementById("profilePage");
-  const feed = document.getElementById("feed");
+  const page = getElement("profilePage");
+  const feed = getElement("feed");
+
+  if (!page || !feed) return;
 
   feed.classList.add("hidden");
   page.classList.remove("hidden");
-
   page.textContent = "Profil yükleniyor...";
 
   const { data: profile, error } = await db
@@ -678,26 +727,36 @@ async function showProfile(userId) {
     return;
   }
 
-  const [{ count: followers }, { count: following }, { data: userVideos }] =
-    await Promise.all([
-      db.from("follows").select("*", { count: "exact", head: true })
-        .eq("following_id", userId),
-      db.from("follows").select("*", { count: "exact", head: true })
-        .eq("follower_id", userId),
-      db.from("videos").select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-    ]);
+  const [
+    { count: followers },
+    { count: following },
+    { data: userVideos }
+  ] = await Promise.all([
+    db.from("follows")
+      .select("*", { count: "exact", head: true })
+      .eq("following_id", userId),
+
+    db.from("follows")
+      .select("*", { count: "exact", head: true })
+      .eq("follower_id", userId),
+
+    db.from("videos")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+  ]);
 
   page.innerHTML = `
     <div class="profile-avatar">👤</div>
     <h2>@${escapeHTML(profile.username)}</h2>
     <p>${escapeHTML(profile.bio || "")}</p>
+
     <div class="profile-stats">
       <span><b>${userVideos?.length || 0}</b><br>Video</span>
       <span><b>${followers || 0}</b><br>Takipçi</span>
       <span><b>${following || 0}</b><br>Takip</span>
     </div>
+
     <div id="profileVideos"></div>
   `;
 
@@ -710,11 +769,12 @@ async function showProfile(userId) {
       const bio = prompt("Yeni biyografin:", profile.bio || "");
       if (bio === null) return;
 
-      const { error } = await db.from("profiles")
+      const { error } = await db
+        .from("profiles")
         .update({ bio: bio.slice(0, 160) })
         .eq("id", currentUser.id);
 
-      if (error) return alert(error.message);
+      if (error) return showError(error.message);
 
       await showProfile(userId);
     };
@@ -725,17 +785,19 @@ async function showProfile(userId) {
     follow.className = "follow-btn";
     follow.textContent = "Takip Et";
 
-    const { data: existing } = await db.from("follows")
+    const { data: existing } = await db
+      .from("follows")
       .select("id")
       .eq("follower_id", currentUser.id)
       .eq("following_id", userId)
       .maybeSingle();
 
-    if (existing) follow.textContent = "Takip Ediliyor";
+    if (existing) {
+      follow.textContent = "Takip Ediliyor";
+      follow.classList.add("following");
+    }
 
-    follow.onclick = async () => {
-      await toggleFollow(userId, follow);
-    };
+    follow.onclick = () => toggleFollow(userId, follow);
 
     page.insertBefore(follow, page.querySelector("#profileVideos"));
   }
@@ -753,7 +815,6 @@ async function showProfile(userId) {
     player.controls = true;
     player.playsInline = true;
     player.className = "video-player";
-
     videoArea.append(player);
   });
 }
@@ -762,38 +823,27 @@ async function showProfile(userId) {
 // SEARCH
 // ===================================
 
-document.getElementById("searchBtn").onclick = async () => {
-  const username = prompt("Kullanıcı adı ara:");
-  if (!username?.trim()) return;
+if (getElement("searchBtn")) {
+  getElement("searchBtn").onclick = async () => {
+    const username = prompt("Kullanıcı adı ara:");
 
-  const { data, error } = await db
-    .from("profiles")
-    .select("id,username")
-    .ilike("username", username.trim())
-    .limit(1);
+    if (!username?.trim()) return;
 
-  if (error) return alert(error.message);
+    const { data, error } = await db
+      .from("profiles")
+      .select("id,username")
+      .ilike("username", username.trim())
+      .limit(1);
 
-  if (!data?.length) {
-    alert("Kullanıcı bulunamadı.");
-    return;
-  }
+    if (error) return showError(error.message);
 
-  await showProfile(data[0].id);
-};
+    if (!data?.length) {
+      alert("Kullanıcı bulunamadı.");
+      return;
+    }
 
-// ===================================
-// SECURITY HELPER
-// ===================================
-
-function escapeHTML(value) {
-  return String(value).replace(/[&<>"']/g, char => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;"
-  })[char]);
+    await showProfile(data[0].id);
+  };
 }
 
 // ===================================
