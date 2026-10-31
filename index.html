@@ -3,43 +3,70 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#ffffff">
-  <title>ERENSARYA - Video Paylaşım</title>
+  <title>ERENSARYA - Sosyal Video</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<header class="topbar">
-  <div class="logo">EREN<span>SARYA</span></div>
-  <button class="search">⌕</button>
+<header class="header">
+  <a class="logo" href="#">EREN<span>SARYA</span></a>
+  <button id="searchBtn" class="icon-btn">⌕</button>
 </header>
 
+<div class="auth-bar" id="authBar">
+  <button onclick="showAuth('login')">Giriş Yap</button>
+  <button class="dark-btn" onclick="showAuth('signup')">Kayıt Ol</button>
+</div>
+
 <nav class="tabs">
-  <button onclick="setTab('Takip',this)">Takip</button>
-  <button class="active" onclick="setTab('Sana Özel',this)">Sana Özel</button>
-  <button onclick="setTab('Keşfet',this)">Keşfet</button>
+  <button onclick="loadFeed('following',this)">Takip</button>
+  <button class="active" onclick="loadFeed('forYou',this)">Sana Özel</button>
+  <button onclick="loadFeed('discover',this)">Keşfet</button>
 </nav>
 
 <main id="feed">
-  <div class="empty">
-    <div class="empty-icon">▶</div>
-    <h2>Henüz video yok</h2>
-    <p>İlk videonu paylaş ve ER ENSARYA'yı başlat!</p>
-    <button onclick="document.getElementById('videoInput').click()">
-      İlk Videonu Yükle
-    </button>
-  </div>
+  <div class="loading">Videolar yükleniyor...</div>
 </main>
 
-<input type="file" id="videoInput" accept="video/*" hidden>
+<section id="profilePage" class="profile-page hidden"></section>
+
+<div id="authModal" class="modal hidden">
+  <div class="modal-content">
+    <button class="close" onclick="closeModal()">✕</button>
+    <h2 id="authTitle">ERENSARYA</h2>
+    <form id="authForm">
+      <input id="username" placeholder="Kullanıcı adı" maxlength="30">
+      <input id="email" type="email" placeholder="E-posta" required>
+      <input id="password" type="password" placeholder="Şifre" minlength="8" required>
+      <button class="dark-btn" type="submit" id="authSubmit">Devam Et</button>
+    </form>
+    <p id="authMessage"></p>
+  </div>
+</div>
+
+<div id="commentModal" class="modal hidden">
+  <div class="modal-content">
+    <button class="close" onclick="closeComments()">✕</button>
+    <h2>Yorumlar</h2>
+    <div id="commentList"></div>
+    <form id="commentForm">
+      <input id="commentInput" placeholder="Yorum yaz..." maxlength="500" required>
+      <button class="dark-btn">Gönder</button>
+    </form>
+  </div>
+</div>
+
+<input type="file" id="videoInput" accept="video/mp4,video/webm,video/quicktime" hidden>
 
 <nav class="bottom-nav">
-  <button onclick="window.scrollTo(0,0)">⌂<small>Ana Sayfa</small></button>
-  <button onclick="setTab('Takip')">♧<small>Takip</small></button>
-  <button class="upload" onclick="document.getElementById('videoInput').click()">＋</button>
-  <button onclick="setTab('Keşfet')">⌕<small>Keşfet</small></button>
-  <button onclick="showProfile()">♙<small>Profil</small></button>
+  <button onclick="loadFeed('forYou')">⌂<small>Ana Sayfa</small></button>
+  <button onclick="loadFeed('following')">♧<small>Takip</small></button>
+  <button class="upload-btn" onclick="uploadVideo()">＋</button>
+  <button onclick="loadFeed('discover')">⌕<small>Keşfet</small></button>
+  <button onclick="showMyProfile()">♙<small>Profil</small></button>
 </nav>
 
 <script src="app.js"></script>
