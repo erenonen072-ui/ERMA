@@ -1416,3 +1416,104 @@ button:hover {
     flex-shrink: 0 !important;
   }
 }
+/* ERNSARYA PROFESYONEL SOHBET */
+
+#messagesPage {
+  height: 100dvh;
+  overflow: hidden;
+}
+
+#messagesPage .messages-layout {
+  display: flex;
+  height: calc(100% - 75px);
+  min-height: 0;
+  overflow: hidden;
+}
+
+#messagesPage .er-contact-panel {
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+#messagesPage .er-chat-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#messagesPage #chatHeader {
+  flex-shrink: 0;
+}
+
+#messagesPage #messageList {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+#messagesPage #messageForm {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  background: var(--msg-panel, #fff);
+  z-index: 10;
+}
+
+#messagesPage #messageInput {
+  flex: 1;
+  min-width: 0;
+}
+
+#messagesPage.chat-open .er-contact-panel {
+  display: none !important;
+}
+
+#messagesPage.chat-open .er-chat-panel {
+  display: flex !important;
+  width: 100%;
+  flex: 1 1 100%;
+}
+
+@media (max-width: 700px) {
+  #messagesPage {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100dvh;
+    z-index: 9999;
+  }
+
+  #messagesPage .messages-topbar {
+    flex-shrink: 0;
+  }
+
+  #messagesPage .messages-layout {
+    height: calc(100% - 75px);
+    height: calc(100% - 75px - env(safe-area-inset-bottom));
+  }
+
+  #messagesPage.chat-open .messages-topbar {
+    display: none !important;
+  }
+
+  #messagesPage.chat-open .er-contact-panel {
+    display: none !important;
+  }
+
+  #messagesPage.chat-open .er-chat-panel {
+    width: 100%;
+    height: 100%;
+  }
+
+  #messagesPage.chat-open #messageForm {
+    position: relative;
+    flex-shrink: 0;
+  }
+}
