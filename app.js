@@ -39,20 +39,16 @@ function showError(message) {
 }
 
 // ===================================
-// AUTHENTICATION
+// ERNSARYA - USERNAME AUTH SYSTEM
 // ===================================
+
+function makeLoginEmail(username) {
+  return username.trim().toLowerCase() + "@erensarya.invalid";
+}
 
 async function init() {
   if (!window.supabase) {
-    console.error("Supabase kütüphanesi yüklenmedi.");
-    return;
-  }
-
-  if (
-    SUPABASE_KEY === "BURAYA_PUBLISHABLE_KEY" ||
-    !SUPABASE_KEY.startsWith("sb_publishable_")
-  ) {
-    console.error("Supabase Publishable Key eksik.");
+    console.error("Supabase yüklenmedi.");
     return;
   }
 
@@ -65,9 +61,7 @@ async function init() {
 
   currentUser = data.session?.user || null;
 
-  if (currentUser) {
-    await loadMyProfile();
-  }
+  if (currentUser) await loadMyProfile();
 
   updateAuthBar();
   await loadFeed("forYou");
@@ -120,12 +114,10 @@ function showAuth(type) {
   const signup = type === "signup";
 
   getElement("authTitle").textContent =
-    signup ? "Hesap Oluştur" : "Giriş Yap";
-
-  getElement("username")?.classList.toggle("hidden", !signup);
+    signup ? "ERENSARYA'ya Katıl" : "Tekrar Hoş Geldin";
 
   getElement("authSubmit").textContent =
-    signup ? "Kayıt Ol" : "Giriş Yap";
+    signup ? "Hesap Oluştur" : "Giriş Yap";
 
   getElement("authForm").dataset.type = type;
   getElement("authMessage").textContent = "";
@@ -139,9 +131,8 @@ getElement("authForm")?.addEventListener("submit", async function(e) {
   e.preventDefault();
 
   const type = this.dataset.type;
-  const email = getElement("email").value.trim();
+  const username = getElement("username").value.trim().toLowerCase();
   const password = getElement("password").value;
-  const username = getElement("username").value.trim();
   const message = getElement("authMessage");
   const submit = getElement("authSubmit");
 
@@ -149,13 +140,17 @@ getElement("authForm")?.addEventListener("submit", async function(e) {
   message.textContent = "İşlem yapılıyor...";
 
   try {
-    if (type === "signup") {
-      if (!/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
-        throw new Error(
-          "Kullanıcı adı 3-30 karakter olmalı."
-        );
-      }
+    if (!/^[a-z0-9_]{3,30}$/.test(username)) {
+      throw new Error("Kullanıcı adı 3-30 karakter olmalı. Harf, rakam ve _ kullanabilirsin.");
+    }
 
+    if (password.length < 6) {
+      throw new Error("Şifre en az 6 karakter olmalı.");
+    }
+
+    const email = makeLoginEmail(username);
+
+    if (type === "signup") {
       const { data, error } = await db.auth.signUp({
         email,
         password,
@@ -174,7 +169,7 @@ getElement("authForm")?.addEventListener("submit", async function(e) {
         await loadFeed("forYou");
       } else {
         message.textContent =
-          "Kayıt başarılı. E-posta doğrulamasını tamamla.";
+          "Kayıt oluşturuldu. Giriş yapabilmek için Supabase e-posta doğrulama ayarını kontrol et.";
       }
     } else {
       const { data, error } = await db.auth.signInWithPassword({
@@ -217,91 +212,6 @@ db.auth.onAuthStateChange((event, session) => {
     updateAuthBar();
   }
 });
-
-// ===================================
-// VIDEO FEED
-// ===================================
-
-async function loadFeed(tab, element) {
-  currentTab = tab;
-
-  if (element) {
-    document.querySelectorAll(".tabs button")
-      .forEach(button => button.classList.remove("active"));
-
-    element.classList.add("active");
-  }
-
-  getElement("profilePage")?.classList.add("hidden");
-
-  const feed = getElement("feed");
-  if (!feed) return;
-
-  feed.classList.remove("hidden");
-  feed.innerHTML = '<div class="loading">Videolar yükleniyor...</div>';
-
-  let query = db
-    .from("videos")
-    .select(`
-      *,
-      profiles!videos_user_id_fkey (
-        username,
-        avatar_url
-      )
-    `)
-    .order("created_at", { ascending: false })
-    .limit(30);
-
-  if (tab === "following") {
-    if (!currentUser) {
-      feed.innerHTML =
-        '<div class="empty">Takip akışını görmek için giriş yap.</div>';
-      return;
-    }
-
-    const { data: follows, error } = await db
-      .from("follows")
-      .select("following_id")
-      .eq("follower_id", currentUser.id);
-
-    if (error) {
-      feed.textContent = error.message;
-      return;
-    }
-
-    const ids = follows.map(item => item.following_id);
-
-    if (!ids.length) {
-      feed.innerHTML =
-        '<div class="empty">Henüz kimseyi takip etmiyorsun.</div>';
-      return;
-    }
-
-    query = query.in("user_id", ids);
-  }
-
-  const { data: videos, error } = await query;
-
-  if (error) {
-    feed.textContent = "Videolar yüklenemedi: " + error.message;
-    return;
-  }
-
-  if (!videos?.length) {
-    feed.innerHTML =
-      '<div class="empty">Henüz video paylaşılmamış.</div>';
-    return;
-  }
-
-  feed.innerHTML = "";
-
-  for (const video of videos) {
-    await renderVideo(video, feed);
-  }
-
-  setupAutoplay();
-}
-
 // ===================================
 // VIDEO CARD
 // ===================================
