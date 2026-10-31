@@ -4,7 +4,7 @@
 // ===================================
 
 const SUPABASE_URL = "https://zhxysowjrvzflrduqbaj.supabase.co";
-const SUPABASE_KEY = "BURAYA_PUBLISHABLE_KEY";
+const SUPABASE_KEY = "sb_publishable_-vUDT5LRwj89sLihzu7MyQ_jpGzbDQM";
 
 const db = window.supabase.createClient(
   SUPABASE_URL,
