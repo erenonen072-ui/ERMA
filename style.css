@@ -1378,3 +1378,41 @@ button:hover {
     flex-shrink: 0 !important;
   }
 }
+/* ERNSARYA - Mobil mesajlaşma ekranı */
+
+@media (max-width: 700px) {
+
+  #messagesPage.chat-open .er-contact-panel {
+    display: none !important;
+  }
+
+  #messagesPage.chat-open .er-chat-panel {
+    display: flex !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 1 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+  }
+
+  #messagesPage.chat-open {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  #messagesPage.chat-open #chatHeader {
+    display: flex !important;
+  }
+
+  #messagesPage.chat-open #messageList {
+    display: flex !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  #messagesPage.chat-open #messageForm {
+    display: flex !important;
+    flex-shrink: 0 !important;
+  }
+}
