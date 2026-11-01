@@ -1,5 +1,5 @@
 // ========================================
-// ERENSARYA - YENİ MESAJLAŞMA SİSTEMİ
+// ERENSARYA - PROFESYONEL MESAJLAŞMA
 // ========================================
 
 let activeChatUser = null;
@@ -16,111 +16,53 @@ const chatHeader = messageElement("chatHeader");
 const messageInput = messageElement("messageInput");
 const messageForm = messageElement("messageForm");
 
-let contactPanel = null;
-let chatPanel = null;
-
 // ========================================
-// MOBİL ARAYÜZÜ HAZIRLA
+// ARAYÜZÜ HAZIRLA
 // ========================================
 
 function setupMessageInterface() {
-  if (!messagesPage || !contactList || !chatHeader) return;
+  if (!messagesPage) return;
 
   messagesPage.classList.add("er-messages");
 
-  contactPanel =
-    contactList.closest(".contacts-panel") ||
-    contactList.parentElement;
+  const sidebar = messagesPage.querySelector(".messages-sidebar");
+  const panel = messagesPage.querySelector(".chat-panel");
 
-  chatPanel =
-    chatHeader.closest(".chat-panel") ||
-    chatHeader.parentElement;
+  sidebar?.classList.add("er-contact-panel");
+  panel?.classList.add("er-chat-panel");
 
-  // Üst başlık
-  let toolbar = messageElement("messageToolbar");
-
-  if (!toolbar) {
-    toolbar = document.createElement("div");
-    toolbar.id = "messageToolbar";
-    toolbar.className = "message-toolbar";
-
-    toolbar.innerHTML = `
-      <div class="message-toolbar-title">
-        <strong>Mesajlar</strong>
-        <small>Özel sohbetlerin</small>
-      </div>
-      <button type="button" id="messageThemeBtn"
-        class="message-theme-btn" aria-label="Temayı değiştir">
-        ☾
-      </button>
-    `;
-
-    messagesPage.prepend(toolbar);
-  }
-
-  // Sohbete geri dönme düğmesi
-  if (!messageElement("chatBackBtn")) {
-    const back = document.createElement("button");
-    back.id = "chatBackBtn";
-    back.type = "button";
-    back.className = "chat-back-btn";
-    back.textContent = "‹";
-    back.setAttribute("aria-label", "Sohbet listesine dön");
-
-    chatHeader.prepend(back);
-
-    back.addEventListener("click", backToContacts);
-  }
-
-  // Tema
-  applyMessageTheme();
-
-  messageElement("messageThemeBtn")?.addEventListener(
-    "click",
-    toggleMessageTheme
-  );
+  setupKeyboardViewport();
 }
 
 // ========================================
-// TEMA SİSTEMİ
+// KLAVYE VE EKRAN BOYUTU
 // ========================================
 
-function applyMessageTheme() {
-  if (!messagesPage) return;
+function setupKeyboardViewport() {
+  if (!window.visualViewport) return;
 
-  const theme = localStorage.getItem("erensarya-message-theme") || "light";
+  const updateViewport = () => {
+    if (!messagesPage || messagesPage.classList.contains("hidden")) return;
 
-  messagesPage.classList.toggle("theme-dark", theme === "dark");
+    const height = window.visualViewport.height;
+    messagesPage.style.setProperty(
+      "--chat-viewport-height",
+      `${height}px`
+    );
+  };
 
-  const button = messageElement("messageThemeBtn");
-
-  if (button) {
-    button.textContent = theme === "dark" ? "☀" : "☾";
-    button.title = theme === "dark" ? "Beyaz tema" : "Siyah tema";
-  }
-}
-
-function toggleMessageTheme() {
-  const current =
-    localStorage.getItem("erensarya-message-theme") || "light";
-
-  localStorage.setItem(
-    "erensarya-message-theme",
-    current === "light" ? "dark" : "light"
-  );
-
-  applyMessageTheme();
+  window.visualViewport.addEventListener("resize", updateViewport);
+  window.visualViewport.addEventListener("scroll", updateViewport);
+  updateViewport();
 }
 
 // ========================================
-// SAYFAYI AÇ
+// MESAJ SAYFASINI AÇ
 // ========================================
 
 messageElement("messagesBtn")?.addEventListener("click", openMessages);
 
-messageElement("backMessages")?.addEventListener("click", () => {
-  closeMessages();
-});
+messageElement("backMessages")?.addEventListener("click", closeMessages);
 
 async function openMessages() {
   if (!currentUser) {
@@ -138,26 +80,54 @@ async function openMessages() {
 
   activeChatUser = null;
 
+  resetChatHeader();
+
   if (messageInput) {
+    messageInput.value = "";
     messageInput.disabled = true;
     messageInput.placeholder = "Önce bir sohbet seç...";
   }
 
-  messageElement("sendMessageBtn").disabled = true;
-
-  applyMessageTheme();
+  const sendButton = messageElement("sendMessageBtn");
+  if (sendButton) sendButton.disabled = true;
 
   await loadMessageContacts();
   startMessageRealtime();
 }
 
+// ========================================
+// MESAJ SAYFASINI KAPAT
+// ========================================
+
 function closeMessages() {
   messagesPage?.classList.add("hidden");
+  messagesPage?.classList.remove("chat-open");
+
   messageElement("feed")?.classList.remove("hidden");
+  messageElement("profilePage")?.classList.add("hidden");
+
+  activeChatUser = null;
 
   stopMessageRealtime();
-  activeChatUser = null;
 }
+
+// ========================================
+// BOŞ SOHBET BAŞLIĞI
+// ========================================
+
+function resetChatHeader() {
+  if (!chatHeader) return;
+
+  chatHeader.innerHTML = `
+    <div class="chat-welcome-icon">✉</div>
+    <h3>ERENSARYA Mesajlaşma</h3>
+    <p>Sohbet etmek için bir kullanıcı seç.</p>
+  `;
+}
+
+// ========================================
+// KİŞİ LİSTESİNE GERİ DÖN
+// ========================================
 
 function backToContacts() {
   activeChatUser = null;
@@ -170,8 +140,10 @@ function backToContacts() {
     messageInput.placeholder = "Önce bir sohbet seç...";
   }
 
-  messageElement("sendMessageBtn").disabled = true;
+  const sendButton = messageElement("sendMessageBtn");
+  if (sendButton) sendButton.disabled = true;
 
+  resetChatHeader();
   renderMessageContacts(messageContacts);
 }
 
@@ -180,7 +152,7 @@ function backToContacts() {
 // ========================================
 
 async function loadMessageContacts() {
-  if (!currentUser) return;
+  if (!currentUser || !contactList) return;
 
   contactList.innerHTML =
     '<p class="chat-empty">Kullanıcılar yükleniyor...</p>';
@@ -192,7 +164,7 @@ async function loadMessageContacts() {
     .order("username");
 
   if (error) {
-    contactList.textContent = error.message;
+    contactList.textContent = "Kullanıcılar yüklenemedi: " + error.message;
     return;
   }
 
@@ -201,10 +173,12 @@ async function loadMessageContacts() {
 }
 
 // ========================================
-// KULLANICI LİSTESİ
+// KİŞİ LİSTESİNİ OLUŞTUR
 // ========================================
 
 function renderMessageContacts(users) {
+  if (!contactList) return;
+
   contactList.innerHTML = "";
 
   if (!users.length) {
@@ -256,7 +230,7 @@ function renderMessageContacts(users) {
 }
 
 // ========================================
-// KULLANICI ARAMA
+// KİŞİ ARAMA
 // ========================================
 
 messageElement("contactSearch")?.addEventListener("input", event => {
@@ -270,24 +244,19 @@ messageElement("contactSearch")?.addEventListener("input", event => {
 });
 
 // ========================================
-// SOHBET AÇ
+// SOHBET BAŞLIĞINI OLUŞTUR
 // ========================================
 
-async function openConversation(user) {
-  if (!user || !currentUser) return;
-
-  activeChatUser = user;
-
-  renderMessageContacts(messageContacts);
+function createChatHeader(user) {
+  if (!chatHeader) return;
 
   chatHeader.innerHTML = "";
 
   const back = document.createElement("button");
-  back.id = "chatBackBtn";
   back.type = "button";
   back.className = "chat-back-btn";
   back.textContent = "‹";
-  back.setAttribute("aria-label", "Geri dön");
+  back.setAttribute("aria-label", "Kişi listesine dön");
   back.addEventListener("click", backToContacts);
 
   const avatar = document.createElement("div");
@@ -310,21 +279,39 @@ async function openConversation(user) {
   name.textContent = "@" + user.username;
 
   const status = document.createElement("small");
-  status.textContent = "Özel sohbet";
+  status.textContent = "ERENSARYA özel sohbet";
 
   info.append(name, status);
   chatHeader.append(back, avatar, info);
+}
 
-  messagesPage.classList.add("chat-open");
+// ========================================
+// SOHBETİ AÇ
+// ========================================
 
-  messageInput.disabled = false;
-  messageInput.placeholder = "Mesajını yaz...";
+async function openConversation(user) {
+  if (!user || !currentUser) return;
 
-  messageElement("sendMessageBtn").disabled = false;
+  activeChatUser = user;
+  loadingMessages = false;
+
+  createChatHeader(user);
+
+  // Kişi listesini tamamen gizle.
+  messagesPage?.classList.add("chat-open");
+
+  if (messageInput) {
+    messageInput.disabled = false;
+    messageInput.placeholder = "Mesajını yaz...";
+  }
+
+  const sendButton = messageElement("sendMessageBtn");
+  if (sendButton) sendButton.disabled = false;
 
   await loadMessages();
 
-  messageInput.focus();
+  // Sohbet açılır açılmaz klavyeyi otomatik açma.
+  // Kullanıcı yazma alanına dokununca klavye açılır.
 }
 
 // ========================================
@@ -335,7 +322,6 @@ async function loadMessages() {
   if (!activeChatUser || !currentUser || loadingMessages) return;
 
   const chatUserId = activeChatUser.id;
-
   loadingMessages = true;
 
   messageList.innerHTML =
@@ -365,8 +351,8 @@ async function loadMessages() {
     messageList.innerHTML = `
       <div class="chat-start">
         <div class="chat-start-icon">💬</div>
-        <h3>İlk mesajı gönder!</h3>
-        <p>Bu sohbet henüz boş.</p>
+        <h3>Sohbete hoş geldin</h3>
+        <p>İlk mesajını göndererek konuşmayı başlat.</p>
       </div>
     `;
     return;
@@ -378,8 +364,7 @@ async function loadMessages() {
 
   const unread = data
     .filter(message =>
-      message.receiver_id === currentUser.id &&
-      !message.is_read
+      message.receiver_id === currentUser.id && !message.is_read
     )
     .map(message => message.id);
 
@@ -415,8 +400,8 @@ function renderMessage(message) {
   footer.className = "message-footer";
 
   const time = new Date(message.created_at);
-
   const clock = document.createElement("small");
+
   clock.textContent = time.toLocaleTimeString("tr-TR", {
     hour: "2-digit",
     minute: "2-digit"
@@ -435,10 +420,16 @@ function renderMessage(message) {
   messageList.append(bubble);
 }
 
+// ========================================
+// MESAJLARI AŞAĞI KAYDIR
+// ========================================
+
 function scrollMessagesToBottom() {
-  if (messageList) {
+  if (!messageList) return;
+
+  requestAnimationFrame(() => {
     messageList.scrollTop = messageList.scrollHeight;
-  }
+  });
 }
 
 // ========================================
@@ -459,13 +450,12 @@ messageForm?.addEventListener("submit", async event => {
   }
 
   const content = messageInput.value.trim();
-
   if (!content) return;
 
   const receiverId = activeChatUser.id;
   const button = messageElement("sendMessageBtn");
 
-  button.disabled = true;
+  if (button) button.disabled = true;
 
   const { error } = await db
     .from("messages")
@@ -475,7 +465,7 @@ messageForm?.addEventListener("submit", async event => {
       content: content.slice(0, 2000)
     });
 
-  button.disabled = false;
+  if (button) button.disabled = false;
 
   if (error) {
     showError("Mesaj gönderilemedi: " + error.message);
@@ -483,8 +473,10 @@ messageForm?.addEventListener("submit", async event => {
   }
 
   messageInput.value = "";
+
   await loadMessages();
-  messageInput.focus();
+
+  // Klavye açıksa açık kalmasına izin ver.
 });
 
 // ========================================
@@ -561,7 +553,7 @@ document.addEventListener("visibilitychange", () => {
 });
 
 // ========================================
-// OTURUM DEĞİŞİNCE
+// OTURUM KAPANINCA
 // ========================================
 
 db.auth.onAuthStateChange(event => {
@@ -572,6 +564,8 @@ db.auth.onAuthStateChange(event => {
     stopMessageRealtime();
 
     messagesPage?.classList.add("hidden");
+    messagesPage?.classList.remove("chat-open");
+
     messageElement("feed")?.classList.remove("hidden");
   }
 });
