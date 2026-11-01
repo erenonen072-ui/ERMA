@@ -1,11 +1,17 @@
+
 // ========================================
 // ERENSARYA - PROFESYONEL MESAJLAŞMA
+// CANLI YAZIYOR GÖSTERGESİ DAHİL
 // ========================================
 
 let activeChatUser = null;
 let messageChannel = null;
+let typingChannel = null;
 let messageContacts = [];
 let loadingMessages = false;
+let typingReady = false;
+let typingTimer = null;
+let typingHideTimer = null;
 
 const messageElement = id => document.getElementById(id);
 
@@ -15,6 +21,115 @@ const messageList = messageElement("messageList");
 const chatHeader = messageElement("chatHeader");
 const messageInput = messageElement("messageInput");
 const messageForm = messageElement("messageForm");
+
+// ========================================
+// YAZIYOR GÖSTERGESİ
+// ========================================
+
+const typingStatus = document.createElement("div");
+typingStatus.id = "typingStatus";
+typingStatus.className = "typing-status";
+typingStatus.textContent = "Yazıyor...";
+typingStatus.style.display = "none";
+
+if (messageList?.parentNode) {
+  messageList.parentNode.insertBefore(typingStatus, messageList);
+}
+
+function showTypingStatus(show) {
+  if (!typingStatus) return;
+
+  typingStatus.style.display = show ? "flex" : "none";
+}
+
+function stopTypingTimers() {
+  clearTimeout(typingTimer);
+  clearTimeout(typingHideTimer);
+}
+
+function sendTypingStatus(isTyping) {
+  if (!typingChannel || !typingReady || !currentUser || !activeChatUser) {
+    return;
+  }
+
+  typingChannel.send({
+    type: "broadcast",
+    event: "typing",
+    payload: {
+      user_id: currentUser.id,
+      is_typing: isTyping
+    }
+  });
+}
+
+async function setupTypingChannel(user) {
+  if (!currentUser || !user) return;
+
+  await stopTypingChannel();
+
+  const ids = [currentUser.id, user.id].sort();
+  const channelName = `erensarya-typing-${ids[0]}-${ids[1]}`;
+
+  typingChannel = db.channel(channelName, {
+    config: {
+      broadcast: {
+        self: false
+      }
+    }
+  });
+
+  typingChannel
+    .on("broadcast", { event: "typing" }, ({ payload }) => {
+      if (!payload || !activeChatUser) return;
+      if (activeChatUser.id !== user.id) return;
+      if (payload.user_id === currentUser.id) return;
+
+      showTypingStatus(payload.is_typing === true);
+
+      clearTimeout(typingHideTimer);
+
+      if (payload.is_typing === true) {
+        typingHideTimer = setTimeout(() => {
+          showTypingStatus(false);
+        }, 2500);
+      }
+    })
+    .subscribe(status => {
+      typingReady = status === "SUBSCRIBED";
+    });
+}
+
+async function stopTypingChannel() {
+  stopTypingTimers();
+  showTypingStatus(false);
+  typingReady = false;
+
+  if (typingChannel) {
+    const oldChannel = typingChannel;
+    typingChannel = null;
+    await db.removeChannel(oldChannel);
+  }
+}
+
+function handleTypingInput() {
+  if (!activeChatUser || !currentUser) return;
+
+  if (!messageInput.value.trim()) {
+    sendTypingStatus(false);
+    clearTimeout(typingTimer);
+    return;
+  }
+
+  sendTypingStatus(true);
+
+  clearTimeout(typingTimer);
+
+  typingTimer = setTimeout(() => {
+    sendTypingStatus(false);
+  }, 1600);
+}
+
+messageInput?.addEventListener("input", handleTypingInput);
 
 // ========================================
 // ARAYÜZÜ HAZIRLA
@@ -44,15 +159,15 @@ function setupKeyboardViewport() {
   const updateViewport = () => {
     if (!messagesPage || messagesPage.classList.contains("hidden")) return;
 
-    const height = window.visualViewport.height;
     messagesPage.style.setProperty(
       "--chat-viewport-height",
-      `${height}px`
+      `${window.visualViewport.height}px`
     );
   };
 
   window.visualViewport.addEventListener("resize", updateViewport);
   window.visualViewport.addEventListener("scroll", updateViewport);
+
   updateViewport();
 }
 
@@ -61,7 +176,6 @@ function setupKeyboardViewport() {
 // ========================================
 
 messageElement("messagesBtn")?.addEventListener("click", openMessages);
-
 messageElement("backMessages")?.addEventListener("click", closeMessages);
 
 async function openMessages() {
@@ -79,6 +193,8 @@ async function openMessages() {
   messagesPage?.classList.remove("chat-open");
 
   activeChatUser = null;
+
+  await stopTypingChannel();
 
   resetChatHeader();
 
@@ -99,7 +215,7 @@ async function openMessages() {
 // MESAJ SAYFASINI KAPAT
 // ========================================
 
-function closeMessages() {
+async function closeMessages() {
   messagesPage?.classList.add("hidden");
   messagesPage?.classList.remove("chat-open");
 
@@ -108,6 +224,7 @@ function closeMessages() {
 
   activeChatUser = null;
 
+  await stopTypingChannel();
   stopMessageRealtime();
 }
 
@@ -129,7 +246,9 @@ function resetChatHeader() {
 // KİŞİ LİSTESİNE GERİ DÖN
 // ========================================
 
-function backToContacts() {
+async function backToContacts() {
+  await stopTypingChannel();
+
   activeChatUser = null;
 
   messagesPage?.classList.remove("chat-open");
@@ -164,7 +283,8 @@ async function loadMessageContacts() {
     .order("username");
 
   if (error) {
-    contactList.textContent = "Kullanıcılar yüklenemedi: " + error.message;
+    contactList.textContent =
+      "Kullanıcılar yüklenemedi: " + error.message;
     return;
   }
 
@@ -189,6 +309,7 @@ function renderMessageContacts(users) {
 
   users.forEach(user => {
     const button = document.createElement("button");
+
     button.type = "button";
     button.className = "contact-item";
 
@@ -244,7 +365,7 @@ messageElement("contactSearch")?.addEventListener("input", event => {
 });
 
 // ========================================
-// SOHBET BAŞLIĞINI OLUŞTUR
+// SOHBET BAŞLIĞI
 // ========================================
 
 function createChatHeader(user) {
@@ -292,12 +413,13 @@ function createChatHeader(user) {
 async function openConversation(user) {
   if (!user || !currentUser) return;
 
+  await stopTypingChannel();
+
   activeChatUser = user;
   loadingMessages = false;
 
   createChatHeader(user);
 
-  // Kişi listesini tamamen gizle.
   messagesPage?.classList.add("chat-open");
 
   if (messageInput) {
@@ -308,10 +430,8 @@ async function openConversation(user) {
   const sendButton = messageElement("sendMessageBtn");
   if (sendButton) sendButton.disabled = false;
 
+  await setupTypingChannel(user);
   await loadMessages();
-
-  // Sohbet açılır açılmaz klavyeyi otomatik açma.
-  // Kullanıcı yazma alanına dokununca klavye açılır.
 }
 
 // ========================================
@@ -322,6 +442,7 @@ async function loadMessages() {
   if (!activeChatUser || !currentUser || loadingMessages) return;
 
   const chatUserId = activeChatUser.id;
+
   loadingMessages = true;
 
   messageList.innerHTML =
@@ -388,6 +509,7 @@ function renderMessage(message) {
   const mine = message.sender_id === currentUser.id;
 
   const bubble = document.createElement("div");
+
   bubble.className = mine
     ? "message-bubble mine"
     : "message-bubble";
@@ -400,6 +522,7 @@ function renderMessage(message) {
   footer.className = "message-footer";
 
   const time = new Date(message.created_at);
+
   const clock = document.createElement("small");
 
   clock.textContent = time.toLocaleTimeString("tr-TR", {
@@ -450,12 +573,16 @@ messageForm?.addEventListener("submit", async event => {
   }
 
   const content = messageInput.value.trim();
+
   if (!content) return;
 
   const receiverId = activeChatUser.id;
   const button = messageElement("sendMessageBtn");
 
   if (button) button.disabled = true;
+
+  sendTypingStatus(false);
+  clearTimeout(typingTimer);
 
   const { error } = await db
     .from("messages")
@@ -475,8 +602,6 @@ messageForm?.addEventListener("submit", async event => {
   messageInput.value = "";
 
   await loadMessages();
-
-  // Klavye açıksa açık kalmasına izin ver.
 });
 
 // ========================================
@@ -561,6 +686,7 @@ db.auth.onAuthStateChange(event => {
     activeChatUser = null;
     messageContacts = [];
 
+    stopTypingChannel();
     stopMessageRealtime();
 
     messagesPage?.classList.add("hidden");
