@@ -2312,3 +2312,46 @@ button:hover {
     min-height: 72px !important;
   }
 }
+
+/* ERNSARYA CANLI YAZIYOR TASARIMI */
+
+.typing-status {
+  display: none;
+  align-items: center;
+  gap: 7px;
+  min-height: 30px;
+  padding: 4px 18px;
+  color: #246bfd;
+  background: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.typing-status::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #246bfd;
+  animation: erTyping 1s infinite ease-in-out;
+}
+
+@keyframes erTyping {
+  0%, 100% {
+    opacity: .3;
+    transform: scale(.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+.dark-theme .typing-status {
+  background: #172337;
+  color: #78a8ff;
+}
+
+.dark-theme .typing-status::after {
+  background: #78a8ff;
+}
