@@ -1517,3 +1517,404 @@ button:hover {
     flex-shrink: 0;
   }
 }
+/* =====================================
+   ERNSARYA - PROFESYONEL SOHBET TASARIMI
+===================================== */
+
+#messagesPage.er-messages {
+  --chat-bg: #f7f8fa;
+  --chat-panel: #ffffff;
+  --chat-text: #17191f;
+  --chat-muted: #858b98;
+  --chat-border: #e9ebef;
+  --chat-primary: #17191f;
+  --chat-mine: #dcefe3;
+  --chat-other: #ffffff;
+
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: var(--chat-viewport-height, 100dvh);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  background: var(--chat-bg);
+  color: var(--chat-text);
+  overflow: hidden;
+}
+
+#messagesPage.er-messages.hidden {
+  display: none !important;
+}
+
+/* Ana üst başlık */
+
+#messagesPage .messages-topbar {
+  flex: 0 0 auto;
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px;
+  background: var(--chat-panel);
+  border-bottom: 1px solid var(--chat-border);
+}
+
+/* Kişi listesi ve sohbet alanı */
+
+#messagesPage .messages-layout {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+  overflow: hidden;
+}
+
+/* Sol kişi listesi */
+
+#messagesPage .er-contact-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 320px;
+  width: 320px;
+  min-height: 0;
+  background: var(--chat-panel);
+  border-right: 1px solid var(--chat-border);
+  overflow-y: auto;
+}
+
+/* Sohbet alanı */
+
+#messagesPage .er-chat-panel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--chat-bg);
+}
+
+/* Sohbet açıldığında kişi listesini ve genel başlığı gizle */
+
+#messagesPage.chat-open .messages-topbar {
+  display: none !important;
+}
+
+#messagesPage.chat-open .er-contact-panel {
+  display: none !important;
+}
+
+#messagesPage.chat-open .er-chat-panel {
+  display: flex !important;
+  width: 100%;
+  max-width: 100%;
+  flex: 1 1 100%;
+}
+
+/* Seçilen kişinin üst başlığı */
+
+#messagesPage #chatHeader {
+  flex: 0 0 auto;
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 13px;
+  padding: 12px 20px;
+  background: var(--chat-panel);
+  border-bottom: 1px solid var(--chat-border);
+  text-align: left;
+}
+
+/* Geri butonu */
+
+#messagesPage .chat-back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--chat-text);
+  font-size: 32px;
+  cursor: pointer;
+}
+
+#messagesPage .chat-back-btn:hover {
+  background: var(--chat-bg);
+}
+
+/* Profil fotoğrafı */
+
+#messagesPage .chat-header-avatar {
+  width: 45px;
+  height: 45px;
+  flex: 0 0 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #e7e9ed;
+  color: #333;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+#messagesPage .chat-header-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Kullanıcı adı */
+
+#messagesPage .chat-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+#messagesPage .chat-header-info strong {
+  color: var(--chat-text);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+#messagesPage .chat-header-info small {
+  color: var(--chat-muted);
+  font-size: 12px;
+}
+
+/* Mesajların bulunduğu alan */
+
+#messagesPage #messageList {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  width: 100%;
+  padding: 22px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mesaj balonları */
+
+#messagesPage .message-bubble {
+  align-self: flex-start;
+  max-width: min(75%, 520px);
+  padding: 11px 14px 7px;
+  border: 1px solid var(--chat-border);
+  border-radius: 16px 16px 16px 4px;
+  background: var(--chat-other);
+  color: var(--chat-text);
+  overflow-wrap: anywhere;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+
+#messagesPage .message-bubble.mine {
+  align-self: flex-end;
+  border: 0;
+  border-radius: 16px 16px 4px 16px;
+  background: var(--chat-mine);
+}
+
+#messagesPage .message-content {
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+#messagesPage .message-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  margin-top: 5px;
+  color: var(--chat-muted);
+  font-size: 10px;
+}
+
+#messagesPage .read-status {
+  color: #2686d9;
+}
+
+/* Mesaj yazma alanı */
+
+#messagesPage #messageForm {
+  position: relative;
+  z-index: 5;
+  display: flex !important;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 76px;
+  margin: 0;
+  padding: 12px 18px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  background: var(--chat-panel);
+  border-top: 1px solid var(--chat-border);
+}
+
+#messagesPage #messageInput {
+  display: block !important;
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  padding: 12px 17px;
+  border: 1px solid var(--chat-border);
+  border-radius: 25px;
+  outline: none;
+  background: var(--chat-bg);
+  color: var(--chat-text);
+  font-size: 14px;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+#messagesPage #messageInput:focus {
+  border-color: #aeb5c0;
+}
+
+#messagesPage #sendMessageBtn {
+  display: flex !important;
+  flex: 0 0 46px;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--chat-primary);
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+#messagesPage #sendMessageBtn:disabled {
+  opacity: .45 !important;
+  cursor: not-allowed;
+}
+
+/* Koyu tema */
+
+#messagesPage.theme-dark {
+  --chat-bg: #111318;
+  --chat-panel: #191c23;
+  --chat-text: #f4f5f7;
+  --chat-muted: #9da3af;
+  --chat-border: #2b3039;
+  --chat-primary: #eeeeee;
+  --chat-mine: #254c3a;
+  --chat-other: #242832;
+}
+
+#messagesPage.theme-dark #sendMessageBtn {
+  color: #17191f;
+}
+
+/* Telefon ekranları */
+
+@media (max-width: 700px) {
+  #messagesPage.er-messages {
+    height: var(--chat-viewport-height, 100dvh);
+    min-height: 0;
+  }
+
+  #messagesPage .messages-topbar {
+    min-height: 64px;
+    padding: 10px 14px;
+  }
+
+  #messagesPage .messages-layout {
+    flex: 1 1 0;
+    min-height: 0;
+    height: 0;
+  }
+
+  #messagesPage .er-contact-panel {
+    flex: 1 1 100%;
+    width: 100%;
+    border-right: 0;
+  }
+
+  #messagesPage .er-chat-panel {
+    flex: 1 1 0;
+    width: 100%;
+    min-height: 0;
+    height: 0;
+  }
+
+  #messagesPage.chat-open .messages-topbar {
+    display: none !important;
+  }
+
+  #messagesPage.chat-open .er-contact-panel {
+    display: none !important;
+  }
+
+  #messagesPage.chat-open .er-chat-panel {
+    display: flex !important;
+  }
+
+  #messagesPage #chatHeader {
+    min-height: 65px;
+    gap: 10px;
+    padding: 8px 12px;
+  }
+
+  #messagesPage .chat-back-btn {
+    flex-basis: 36px;
+    width: 36px;
+    height: 40px;
+  }
+
+  #messagesPage .chat-header-avatar {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+
+  #messagesPage #messageList {
+    flex: 1 1 0;
+    min-height: 0;
+    height: 0;
+    padding: 15px 12px;
+    gap: 10px;
+  }
+
+  #messagesPage .message-bubble {
+    max-width: 85%;
+  }
+
+  #messagesPage #messageForm {
+    min-height: 65px;
+    padding: 8px 10px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+
+  #messagesPage #messageInput {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  #messagesPage #sendMessageBtn {
+    flex-basis: 44px;
+    width: 44px;
+    height: 44px;
+  }
+}
