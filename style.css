@@ -1918,3 +1918,216 @@ button:hover {
     height: 44px;
   }
 }
+/* TAM EKRAN SOHBET */
+
+#messagesPage.chat-open {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  z-index: 999999 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+#messagesPage.chat-open .messages-layout {
+  display: flex !important;
+  flex: 1 1 0 !important;
+  width: 100% !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+#messagesPage.chat-open .messages-topbar,
+#messagesPage.chat-open .er-contact-panel {
+  display: none !important;
+}
+
+#messagesPage.chat-open .er-chat-panel {
+  display: flex !important;
+  flex: 1 1 100% !important;
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+#messagesPage.chat-open #chatHeader {
+  width: 100% !important;
+  flex-shrink: 0 !important;
+}
+
+#messagesPage.chat-open #messageList {
+  flex: 1 1 0 !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  height: 0 !important;
+  overflow-y: auto !important;
+}
+
+#messagesPage.chat-open #messageForm {
+  width: 100% !important;
+  flex-shrink: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+/* =================================
+   ERNSARYA - YENİ RENK TASARIMI
+================================= */
+
+#messagesPage.er-messages {
+  --chat-bg: #f4f7fc;
+  --chat-panel: #ffffff;
+  --chat-text: #17243a;
+  --chat-muted: #8491a5;
+  --chat-border: #e5eaf2;
+  --chat-primary: #246bfd;
+  --chat-mine: #dce9ff;
+  --chat-other: #ffffff;
+}
+
+/* Üst sohbet başlığı */
+#messagesPage #chatHeader {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e8edf5 !important;
+}
+
+/* Geri butonu */
+#messagesPage .chat-back-btn {
+  color: #246bfd !important;
+}
+
+#messagesPage .chat-back-btn:hover {
+  background: #edf3ff !important;
+}
+
+/* Profil fotoğrafı */
+#messagesPage .chat-header-avatar {
+  background: #e8efff !important;
+  color: #246bfd !important;
+}
+
+/* Mesaj alanı */
+#messagesPage #messageList {
+  background: #f4f7fc !important;
+}
+
+/* Gönderilen mesaj */
+#messagesPage .message-bubble.mine {
+  background: #246bfd !important;
+  color: #ffffff !important;
+  border-radius: 17px 17px 4px 17px !important;
+}
+
+/* Alınan mesaj */
+#messagesPage .message-bubble:not(.mine) {
+  background: #ffffff !important;
+  color: #17243a !important;
+  border: 1px solid #e8edf5 !important;
+  border-radius: 17px 17px 17px 4px !important;
+}
+
+/* Saat bilgisi */
+#messagesPage .message-bubble.mine .message-footer {
+  color: #dce8ff !important;
+}
+
+#messagesPage .message-bubble:not(.mine) .message-footer {
+  color: #8491a5 !important;
+}
+
+/* Mesaj yazma bölümü */
+#messagesPage #messageForm {
+  background: #ffffff !important;
+  border-top: 1px solid #e5eaf2 !important;
+}
+
+/* Mesaj yazma kutusu */
+#messagesPage #messageInput {
+  background: #f4f7fc !important;
+  border: 1px solid #e3eaf5 !important;
+  color: #17243a !important;
+}
+
+#messagesPage #messageInput:focus {
+  border-color: #246bfd !important;
+  box-shadow: 0 0 0 3px rgba(36,107,253,.10) !important;
+}
+
+/* Gönder butonu */
+#messagesPage #sendMessageBtn {
+  background: #246bfd !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(36,107,253,.22) !important;
+}
+
+#messagesPage #sendMessageBtn:hover {
+  background: #1554db !important;
+}
+
+/* Kişi listesi */
+#messagesPage .er-contact-panel {
+  background: #ffffff !important;
+}
+
+#messagesPage .contact-item {
+  border-bottom: 1px solid #f0f2f6 !important;
+}
+
+#messagesPage .contact-item.selected {
+  background: #edf3ff !important;
+}
+
+/* Koyu tema */
+#messagesPage.theme-dark {
+  --chat-bg: #101827;
+  --chat-panel: #172337;
+  --chat-text: #f3f6fc;
+  --chat-muted: #9baac0;
+  --chat-border: #293a53;
+  --chat-primary: #4385ff;
+  --chat-mine: #2455a5;
+  --chat-other: #1c2b41;
+}
+
+#messagesPage.theme-dark #chatHeader,
+#messagesPage.theme-dark #messageForm {
+  background: #172337 !important;
+  border-color: #293a53 !important;
+}
+
+#messagesPage.theme-dark #messageList {
+  background: #101827 !important;
+}
+
+#messagesPage.theme-dark .message-bubble:not(.mine) {
+  background: #1c2b41 !important;
+  color: #f3f6fc !important;
+  border-color: #293a53 !important;
+}
+
+#messagesPage.theme-dark #messageInput {
+  background: #101827 !important;
+  color: #ffffff !important;
+  border-color: #293a53 !important;
+}
+
+#messagesPage.theme-dark .message-bubble.mine {
+  background: #2455a5 !important;
+  color: #ffffff !important;
+}
+
+#messagesPage.theme-dark #sendMessageBtn {
+  background: #4385ff !important;
+  color: #ffffff !important;
+}
