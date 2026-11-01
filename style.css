@@ -2131,3 +2131,184 @@ button:hover {
   background: #4385ff !important;
   color: #ffffff !important;
 }
+/* ERNSARYA - YENİ MESAJLAR ANA EKRANI */
+
+#messagesPage .messages-topbar {
+  min-height: 90px !important;
+  padding: 18px 24px !important;
+  background: #fff !important;
+  border-bottom: 1px solid #e8edf5 !important;
+}
+
+#messagesPage .messages-topbar h2 {
+  margin: 0 0 5px !important;
+  color: #17243a !important;
+  font-size: 25px !important;
+  font-weight: 800 !important;
+  letter-spacing: -.7px;
+}
+
+#messagesPage .messages-topbar p {
+  margin: 0 !important;
+  color: #8491a5 !important;
+  font-size: 13px !important;
+}
+
+#messagesPage .messages-sidebar {
+  padding: 15px !important;
+  background: #fff !important;
+}
+
+#messagesPage .contact-search {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  height: 48px !important;
+  padding: 0 15px !important;
+  margin-bottom: 16px !important;
+  border: 1px solid #e8edf5 !important;
+  border-radius: 14px !important;
+  background: #f4f7fc !important;
+}
+
+#messagesPage .contact-search span {
+  color: #246bfd !important;
+  font-size: 20px !important;
+}
+
+#messagesPage .contact-search input {
+  width: 100% !important;
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  color: #17243a !important;
+  font-size: 14px !important;
+}
+
+#messagesPage .contact-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 7px !important;
+}
+
+#messagesPage .contact-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 13px !important;
+  width: 100% !important;
+  min-height: 76px !important;
+  padding: 12px !important;
+  border: 1px solid transparent !important;
+  border-radius: 15px !important;
+  background: #fff !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  transition: .2s ease !important;
+}
+
+#messagesPage .contact-item:hover {
+  background: #f4f7fc !important;
+}
+
+#messagesPage .contact-item.selected {
+  background: #edf3ff !important;
+  border-color: #dce8ff !important;
+}
+
+#messagesPage .contact-avatar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 48px !important;
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  background: #e8efff !important;
+  color: #246bfd !important;
+  font-size: 18px !important;
+  font-weight: 800 !important;
+}
+
+#messagesPage .contact-avatar img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+#messagesPage .contact-details {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+  gap: 5px !important;
+}
+
+#messagesPage .contact-details strong {
+  color: #17243a !important;
+  font-size: 14px !important;
+  font-weight: 750 !important;
+}
+
+#messagesPage .contact-details small {
+  color: #8491a5 !important;
+  font-size: 12px !important;
+}
+
+#messagesPage .chat-empty {
+  padding: 25px 12px !important;
+  color: #8491a5 !important;
+  text-align: center !important;
+  font-size: 13px !important;
+}
+
+/* Koyu tema */
+
+#messagesPage.theme-dark .messages-topbar,
+#messagesPage.theme-dark .messages-sidebar {
+  background: #172337 !important;
+}
+
+#messagesPage.theme-dark .messages-topbar h2,
+#messagesPage.theme-dark .contact-details strong {
+  color: #f3f6fc !important;
+}
+
+#messagesPage.theme-dark .contact-item {
+  background: #172337 !important;
+}
+
+#messagesPage.theme-dark .contact-item:hover,
+#messagesPage.theme-dark .contact-item.selected {
+  background: #223b60 !important;
+}
+
+#messagesPage.theme-dark .contact-search {
+  background: #101827 !important;
+  border-color: #293a53 !important;
+}
+
+#messagesPage.theme-dark .contact-search input {
+  color: #fff !important;
+}
+
+/* Telefon */
+
+@media(max-width:700px) {
+  #messagesPage .messages-topbar {
+    min-height: 82px !important;
+    padding: 15px !important;
+  }
+
+  #messagesPage .messages-topbar h2 {
+    font-size: 23px !important;
+  }
+
+  #messagesPage .messages-sidebar {
+    padding: 12px !important;
+  }
+
+  #messagesPage .contact-item {
+    min-height: 72px !important;
+  }
+}
